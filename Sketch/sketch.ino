@@ -99,6 +99,7 @@ int    ponteiroCarga   = 0;
 // ============================================================
 bool modoLOAD = false;
 bool modoRUN  = false;
+bool DEBUG_SERIAL = false;
 
 // ============================================================
 //  OPCODES (ISA — 4 bits, decimal 0..15)
@@ -172,6 +173,7 @@ int  lerSensor();
 void ligarLED(int n);
 void desligarLED(int n);
 int  pinLED(int n);
+int ultimoEstadoALERT = -1;
 
 // ============================================================
 //  SETUP
@@ -510,6 +512,14 @@ void executarProximaInstrucao() {
       // F11 — Encerra a execução
       EXECUTANDO = false;
       modoRUN    = false;
+
+      // garantir estado neutro do sistema
+      desligarLED(1);
+      desligarLED(2);
+      desligarLED(3);
+      noTone(PIN_BUZZER);
+      acenderDisplay(SEG7[12]);
+      
       Serial.println("[HALT] Execucao encerrada.");
       break;
 
@@ -606,9 +616,16 @@ int lerSensor() {
   digitalWrite(PIN_TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(PIN_TRIG, LOW);
+
   long duracao = pulseIn(PIN_ECHO, HIGH, 30000);
   int dist = (int)(duracao / 58);
-  Serial.print("[READ] Distancia: "); Serial.print(dist); Serial.println(" cm");
+
+  if (DEBUG_SERIAL) {
+    Serial.print("[READ] Distancia: ");
+    Serial.print(dist);
+    Serial.println(" cm");
+  }
+
   return dist;
 }
 
@@ -624,16 +641,26 @@ int pinLED(int n) {
 
 void ligarLED(int n) {
   int p = pinLED(n);
-  if (p < 0) { Serial.println("[ERRO] LED invalido. Use 1, 2 ou 3."); return; }
+  if (p < 0) return;
+
   digitalWrite(p, HIGH);
-  Serial.print("[LEDON] LED "); Serial.print(n); Serial.println(" ligado.");
+
+  if (DEBUG_SERIAL) {
+    Serial.print("[LEDON] LED ");
+    Serial.println(n);
+  }
 }
 
 void desligarLED(int n) {
   int p = pinLED(n);
-  if (p < 0) { Serial.println("[ERRO] LED invalido. Use 1, 2 ou 3."); return; }
+  if (p < 0) return;
+
   digitalWrite(p, LOW);
-  Serial.print("[LEDOFF] LED "); Serial.print(n); Serial.println(" desligado.");
+
+  if (DEBUG_SERIAL) {
+    Serial.print("[LEDOFF] LED ");
+    Serial.println(n);
+  }
 }
 
 // ============================================================
@@ -645,34 +672,52 @@ void desligarLED(int n) {
 void executarALERT() {
   Serial.println("[ALERT] Monitorando... pressione * para sair.");
 
+  ultimoEstadoALERT = -1;
+
   while (true) {
     char tecla = teclado.getKey();
     if (tecla == '*') {
       desligarLED(2);
       desligarLED(3);
       noTone(PIN_BUZZER);
-      acenderDisplay(SEG7[12]);   // ← apaga display ao sair
+      acenderDisplay(SEG7[12]);
       Serial.println("[ALERT] Monitoramento encerrado.");
       return;
     }
 
     int dist = lerSensor();
 
+    int estado;
+
+    if (dist < 10) estado = 0;
+    else if (dist < 20) estado = 1;
+    else estado = 2;
+
+    if (estado == ultimoEstadoALERT) {
+      delay(300);
+      continue; // 🔥 não faz nada repetido
+    }
+
+    ultimoEstadoALERT = estado;
+
+    // reset SÓ quando muda estado
     desligarLED(2);
     desligarLED(3);
     noTone(PIN_BUZZER);
 
-    if (dist < 10) {
+    if (estado == 0) {
       ligarLED(3);
       tone(PIN_BUZZER, 1000);
-      exibirNoDisplay(dist);      // ← mostra distância
+      exibirNoDisplay(dist);
       Serial.println("[ALERT] PERIGO! < 10 cm.");
-    } else if (dist < 20) {
+    }
+    else if (estado == 1) {
       ligarLED(2);
-      acenderDisplay(SEG7[12]);   // ← apaga display
+      acenderDisplay(SEG7[12]);
       Serial.println("[ALERT] ATENCAO! 10-19 cm.");
-    } else {
-      acenderDisplay(SEG7[12]);   // ← apaga display
+    }
+    else {
+      acenderDisplay(SEG7[12]);
       Serial.println("[ALERT] NORMAL. >= 20 cm.");
     }
 
