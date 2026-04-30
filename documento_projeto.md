@@ -10,10 +10,10 @@
 
 | Matrícula | Nome | Participação |
 |-----------|------|--------------|
-| [MATRÍCULA] | [NOME] — Representante | TA |
-| [MATRÍCULA] | [Pedro Lucas Fonseca Vieira] | TA |
+| 202507010719 | Marcus Vinicius da Cunha Martins Junior — Representante | TA |
+| 202507010697 | Pedro Lucas Fonseca Vieira | TA |
 | 202508549621 | Maria Eduarda Alves Cruz | TA |
-| [MATRÍCULA] | [NOME] | TA |
+| 202508549492  | Juan Lucas Pereira | TA |
 
 ---
 
@@ -411,3 +411,114 @@ Situações possíveis: resultado de SUBK quando o operando é maior que ACC.
 - O sensor HC-SR04 utiliza pino para TRIG e pino para ECHO
 - O teclado matricial é ligado diretamente a pinos digitais do Arduino
 - O display é acionado exclusivamente por saídas digitais, sem driver dedicado
+
+---
+
+## 8. Pinagem do Arduino
+
+Pinagem obrigatória conforme especificação do professor:
+
+| Pino | Elemento |
+|------|----------|
+| 22 | Display — segmento a |
+| 23 | Display — segmento b |
+| 24 | Display — segmento c |
+| 25 | Display — segmento d |
+| 26 | Display — segmento e |
+| 27 | Display — segmento f |
+| 28 | Display — segmento g |
+| 29 | Display — ponto decimal (opcional) |
+| 30 | Teclado — linha 1 |
+| 31 | Teclado — linha 2 |
+| 32 | Teclado — linha 3 |
+| 33 | Teclado — linha 4 |
+| 34 | Teclado — coluna 1 |
+| 35 | Teclado — coluna 2 |
+| 36 | Teclado — coluna 3 |
+| 37 | Teclado — coluna 4 |
+| 40 | Sensor HC-SR04 — TRIG |
+| 41 | Sensor HC-SR04 — ECHO |
+| 42 | LED 1 |
+| 43 | LED 2 |
+| 44 | LED 3 |
+| 45 | Buzzer |
+
+---
+
+## 9. Organização do Sketch
+
+### 9.1 Estrutura de Funções
+
+| Função | Responsabilidade |
+|---|---|
+| lerTeclado() | Leitura e debounce do teclado matricial |
+| montarInstrucao() | Monta a string da instrução a partir das teclas pressionadas |
+| codificarOpcode() | Converte decimal para opcode binário de 4 bits; carrega em IR |
+| armazenarInstrucao() | Armazena instrução no vetor programa[] (modo LOAD) |
+| executarCiclo() | UC: implementa busca → decodificação → execução |
+| lerSensor() | Aciona HC-SR04 e retorna distância em cm |
+| exibirDisplay() | Aciona segmentos do display conforme valor de ACC |
+| controleLED() | Liga ou desliga LED conforme instrução e operando |
+| controleBuzzer() | Liga ou desliga o buzzer |
+| executarADDK() | ULA: soma operando a ACC |
+| executarSUBK() | ULA: subtrai operando de ACC |
+| executarCMPK() | ULA: compara ACC com operando e atualiza FLAG_Z |
+| executarALERT() | Lê sensor e aciona saídas conforme faixa de distância |
+| exibirEstado() | Exibe PC, IR, ACC, FLAG_Z no Serial Monitor |
+| tratarErro() | Trata overflow e resultado negativo no display e Serial Monitor |
+
+### 9.2 Boas Práticas Adotadas
+
+- Registradores simulados declarados globalmente com comentários arquiteturais
+- Nomes de variáveis e funções significativos e em português técnico
+- Código indentado de forma consistente
+- Entrada, codificação, controle, processamento e saída separados em funções distintas
+- Nenhuma lógica de negócio concentrada no loop()
+
+### 9.3 Cabeçalho do Sketch
+
+cpp
+/*
+| 202508549492  | Juan Lucas Pereira | TA |
+| 202507010719 | Marcus Vinicius da Cunha Martins Junior | TA |
+| 202507010697 | Pedro Lucas Fonseca Vieira | TA |
+| 202508549621 | Maria Eduarda Alves Cruz | TA |
+*/
+
+
+---
+
+## 10. Setup de Testes
+
+| Teste | O que será demonstrado |
+|---|---|
+| T01 — Codificação | Digitar mnemônico e exibir opcode binário no Serial Monitor |
+| T02 — Leitura do sensor | Executar READ e mostrar valor em ACC |
+| T03 — Operações da ULA | Executar ADDK e SUBK, explicando o papel de ACC |
+| T04 — Comparação | Executar CMPK e mostrar atualização de FLAG_Z |
+| T05 — Memória | Executar STORE e LOADM, explicando o vetor MEM |
+| T06 — Saída visual e sonora | Executar LEDON, LEDOFF, BUZON e BUZOFF |
+| T07 — ALERT | Demonstrar os três comportamentos por faixa de distância |
+| T08 — Display | Exibir valores válidos e explicar a limitação a 1 dígito |
+| T09 — Overflow | Resultado > 9: display exibe E, Serial Monitor informa overflow |
+| T10 — Resultado negativo | Resultado < 0: display exibe –, Serial Monitor informa erro |
+| T11 — HALT | Demonstrar interrupção correta da execução |
+| T12 — Conceitual oral | Identificar no código: memória, PC, IR, ACC, UC e ULA |
+
+---
+
+## 11. Entregáveis
+
+| # | Entregável | Status |
+|---|---|---|
+| 1 | Documentação do projeto em Markdown | ✅ Este documento |
+| 2 | Sketch do Arduino comentado | ✅ https://github.com/pedrolucasfonseca/Arquitetura-de-Computadores-AP1-2026.1/tree/main/Sketch |
+| 3 | Protótipo físico montado em protoboard e funcional | ✅ Entregue em aula |
+| 4 | Repositório GitHub com documentação e código | ✅ https://github.com/pedrolucasfonseca/Arquitetura-de-Computadores-AP1-2026.1.git |
+| 5 | Histórico de commits correspondente ao desenvolvimento | ✅ https://github.com/pedrolucasfonseca/Arquitetura-de-Computadores-AP1-2026.1/commits/main/ |
+
+*Repositório:* https://github.com/claytonjasilva — nome a definir com o professor.
+
+---
+
+Documentação elaborada conforme os requisitos técnicos da disciplina de Arquitetura de Computadores — AP1 2026/1.
