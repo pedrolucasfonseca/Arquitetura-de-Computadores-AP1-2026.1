@@ -11,7 +11,7 @@
 | Matrícula | Nome | Participação |
 |-----------|------|--------------|
 | [MATRÍCULA] | [NOME] — Representante | TA |
-| [MATRÍCULA] | [NOME] | TA |
+| [MATRÍCULA] | [Pedro Lucas Fonseca Vieira] | TA |
 | 202508549621 | Maria Eduarda Alves Cruz | TA |
 | [MATRÍCULA] | [NOME] | TA |
 
@@ -214,3 +214,200 @@ RUN (digita)
                     └─> * (pressiona) → repete...
                           └─> HALT → EXECUTANDO = false → encerrado
 ```
+
+
+---
+
+## 4. Conjunto de Instruções (ISA)
+
+Cada instrução possui um mnemônico, um opcode binário de 4 bits e uma descrição funcional.
+
+| Decimal | Opcode | Mnemônico | Operando | Descrição |
+|---------|--------|-----------|----------|-----------|
+| 0  | 0000 | NOP    | —   | Não realiza operação |
+| 1  | 0001 | READ   | —   | Lê o sensor de distância e armazena o resultado em ACC |
+| 2  | 0010 | LOADK  | k | Carrega a constante k em ACC |
+| 3  | 0011 | ADDK   | k | ACC = ACC + k |
+| 4  | 0100 | SUBK   | k | ACC = ACC - k |
+| 5  | 0101 | CMPK   | k | Compara ACC com k; se iguais, FLAG_Z = true |
+| 6  | 0110 | LEDON  | n | Liga o LED n (1, 2 ou 3) |
+| 7  | 0111 | LEDOFF | n | Desliga o LED n (1, 2 ou 3) |
+| 8  | 1000 | BUZON  | —   | Liga o buzzer |
+| 9  | 1001 | BUZOFF | —   | Desliga o buzzer |
+| 10 | 1010 | DISP   | —   | Exibe o valor de ACC no display de 7 segmentos |
+| 11 | 1011 | ALERT  | —   | Lê o sensor e executa resposta automática por faixa |
+| 12 | 1100 | BINC   | —   | Exibe no Serial Monitor o opcode binário da instrução atual |
+| 13 | 1101 | STORE  | x | Armazena ACC em MEM[x] |
+| 14 | 1110 | LOADM  | x | Carrega MEM[x] em ACC |
+| 15 | 1111 | HALT   | —   | Encerra a execução do programa |
+
+---
+
+## 5. Funcionalidades
+
+### F01 — Entrada de Instruções por Teclado
+
+*Elemento arquitetural:* Entrada / I/O
+
+O sistema recebe instruções pelo teclado matricial 4×4. No modo LOAD, o usuário digita o opcode em decimal, pressiona B para separar do operando, e C para confirmar. A tecla D apaga o buffer. O sistema monta a string da instrução e a armazena no vetor programa[].
+
+---
+
+### F02 — Codificação de Mnemônico para Opcode
+
+*Elemento arquitetural:* ISA / assembly
+
+A função codificarOpcode() recebe o número decimal digitado e retorna o opcode binário de 4 bits correspondente, que é carregado em IR. O mapeamento segue exatamente a tabela da ISA definida na seção 4.
+
+---
+
+### F03 — Controle do Ciclo de Instrução (UC)
+
+*Elemento arquitetural:* Unidade de Controle
+
+A função executarCiclo() implementa o ciclo completo: busca a instrução em programa[PC], chama codificarOpcode(), carrega o resultado em IR, decodifica e chama a função de execução correspondente, atualiza PC e exibe o estado no Serial Monitor.
+
+---
+
+### F04 — Operações Aritméticas e de Comparação (ULA)
+
+*Elemento arquitetural:* ULA
+
+| Instrução | Operação |
+|---|---|
+| ADDK k | ACC = ACC + k |
+| SUBK k | ACC = ACC - k |
+| CMPK k | FLAG_Z = (ACC == k) |
+
+---
+
+### F05 — Leitura do Sensor de Distância
+
+*Elemento arquitetural:* Entrada de dados
+
+A função lerSensor() aciona o HC-SR04 via pino TRIG (40) e mede o tempo de retorno pelo pino ECHO (41), convertendo para centímetros. O valor é armazenado em ACC.
+
+---
+
+### F06 — Controle de LEDs
+
+*Elemento arquitetural:* Saída
+
+As instruções LEDON n e LEDOFF n ligam e desligam os LEDs nos pinos 42 (LED 1), 43 (LED 2) e 44 (LED 3).
+
+---
+
+### F07 — Controle de Buzzer
+
+*Elemento arquitetural:* Saída
+
+As instruções BUZON e BUZOFF ligam e desligam o buzzer no pino 45.
+
+---
+
+### F08 — Exibição no Display de 7 Segmentos
+
+*Elemento arquitetural:* Saída
+
+O display é de *catodo comum*, acionado diretamente pelos pinos 22 a 28 (segmentos a–g). A instrução DISP exibe o valor de ACC em decimal (0–9). Valores fora desse intervalo são tratados conforme a seção 6.
+
+Tabela de segmentos (catodo comum — 1 = aceso):
+
+| Dígito | a | b | c | d | e | f | g |
+|--------|---|---|---|---|---|---|---|
+| 0 | 1 | 1 | 1 | 1 | 1 | 1 | 0 |
+| 1 | 0 | 1 | 1 | 0 | 0 | 0 | 0 |
+| 2 | 1 | 1 | 0 | 1 | 1 | 0 | 1 |
+| 3 | 1 | 1 | 1 | 1 | 0 | 0 | 1 |
+| 4 | 0 | 1 | 1 | 0 | 0 | 1 | 1 |
+| 5 | 1 | 0 | 1 | 1 | 0 | 1 | 1 |
+| 6 | 1 | 0 | 1 | 1 | 1 | 1 | 1 |
+| 7 | 1 | 1 | 1 | 0 | 0 | 0 | 0 |
+| 8 | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
+| 9 | 1 | 1 | 1 | 1 | 0 | 1 | 1 |
+| E (overflow) | 1 | 0 | 0 | 1 | 1 | 1 | 1 |
+| – (negativo) | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
+
+---
+
+### F09 — Memória Simulada
+
+*Elemento arquitetural:* Memória
+
+O vetor MEM[16] armazena valores inteiros. STORE x grava ACC em MEM[x]; LOADM x lê MEM[x] e carrega em ACC.
+
+---
+
+### F10 — Resposta Automática por Faixa de Distância (ALERT)
+
+*Elemento arquitetural:* Controle / processamento
+
+| Faixa de distância | Comportamento |
+|---|---|
+| Distância < 10 cm | Liga buzzer + liga LED 1 (alerta) |
+| 10 cm ≤ distância < 20 cm | Liga LED 1 (alerta); buzzer desligado |
+| Distância ≥ 20 cm | Mantém buzzer e LED 1 desligados |
+
+---
+
+### F11 — Finalização por HALT
+
+*Elemento arquitetural:* Controle
+
+HALT define EXECUTANDO = false, interrompendo o ciclo. Novos * são ignorados. O Serial Monitor exibe [HALT] Execucao encerrada.
+
+---
+
+## 6. Tratamento de Resultados Não Representáveis
+
+O display é limitado a 1 dígito decimal (0–9).
+
+### 6.1 Overflow
+
+Ocorre quando o resultado a exibir via DISP é *maior que 9*.
+
+| Dispositivo | Comportamento |
+|---|---|
+| Display | Exibe E (segmentos a, d, e, f, g acesos) |
+| Serial Monitor | [ERRO] Overflow: valor X nao representavel no display. |
+
+Situações possíveis: resultado de ADDK ou valor carregado por LOADK acima de 9.
+
+### 6.2 Resultado Negativo
+
+Ocorre quando o resultado de uma operação é *menor que 0*.
+
+| Dispositivo | Comportamento |
+|---|---|
+| Display | Exibe – (segmento g aceso) |
+| Serial Monitor | [ERRO] Valor negativo: resultado X nao representavel no display. |
+
+Situações possíveis: resultado de SUBK quando o operando é maior que ACC.
+
+---
+
+## 7. Descrição do Hardware
+
+### 7.1 Componentes Utilizados
+
+| Componente | Especificação |
+|---|---|
+| Microcontrolador | Arduino Mega 2560 (ATmega2560) |
+| Teclado | Matricial 4×4 |
+| Sensor de distância | HC-SR04 |
+| LEDs | 3 × LED 5 mm |
+| Buzzer | Buzzer ativo |
+| Display | 7 segmentos, 1 dígito, *catodo comum* |
+| Resistores para LEDs | 220 Ω a 330 Ω (um por LED) |
+| Resistores para display | 220 Ω a 330 Ω (um por segmento) |
+| Protoboard | Padrão de laboratório |
+| Jumpers | Padrão de laboratório |
+
+### 7.2 Regras de Conexão
+
+- Cada LED possui resistor em série
+- Cada segmento do display possui resistor em série
+- O buzzer é conectado a pino digital de saída
+- O sensor HC-SR04 utiliza pino para TRIG e pino para ECHO
+- O teclado matricial é ligado diretamente a pinos digitais do Arduino
+- O display é acionado exclusivamente por saídas digitais, sem driver dedicado
