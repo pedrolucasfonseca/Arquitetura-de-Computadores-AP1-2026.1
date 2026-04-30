@@ -13,7 +13,7 @@
 | 202507010719 | Marcus Vinicius da Cunha Martins Junior — Representante | TA |
 | 202507010697 | Pedro Lucas Fonseca Vieira | TA |
 | 202508549621 | Maria Eduarda Alves Cruz | TA |
-| 202508549492  | Juan Lucas Pereira | TA |
+| 202508549492 | Juan Lucas Pereira | TA |
 
 ---
 
@@ -479,10 +479,10 @@ Pinagem obrigatória conforme especificação do professor:
 
 cpp
 /*
-| 202508549492  | Juan Lucas Pereira | TA |
-| 202507010719 | Marcus Vinicius da Cunha Martins Junior | TA |
-| 202507010697 | Pedro Lucas Fonseca Vieira | TA |
-| 202508549621 | Maria Eduarda Alves Cruz | TA |
+ *  202508549492 Juan Lucas Pereira - TA
+ *  202507010719 Marcus Vinicius da Cunha Martins Junior - TA
+ *  202507010697 Pedro Lucas Fonseca Vieira - TA
+ *  202508549621 Maria Eduarda Alves Cruz - TA
 */
 
 

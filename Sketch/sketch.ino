@@ -7,8 +7,11 @@
  * Disciplina: Arquitetura de Computadores
  * Trabalho AP1 - 2026/1
  *
+ * 
  *  202508549492 Juan Lucas Pereira - TA
- *  Marcus Vinicius - TA
+ *  202507010719 Marcus Vinicius da Cunha Martins Junior - TA
+ *  202507010697 Pedro Lucas Fonseca Vieira - TA
+ *  202508549621 Maria Eduarda Alves Cruz - TA
  *
  * Descrição geral:
  *   Implementa um interpretador de instruções simulando os
