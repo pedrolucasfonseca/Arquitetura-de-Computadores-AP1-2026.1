@@ -1,28 +1,28 @@
 /*
- * ============================================================
- *  SISTEMA INTERPRETADOR DE INSTRUÇÕES COM SENSOR DE DISTÂNCIA
- *  Arduino Mega 2560
- * ============================================================
- *
- * Disciplina: Arquitetura de Computadores
- * Trabalho AP1 - 2026/1
- *
- * 
- *  202508549492 Juan Lucas Pereira - TA
- *  202507010719 Marcus Vinicius da Cunha Martins Junior - TA
- *  202507010697 Pedro Lucas Fonseca Vieira - TA
- *  202508549621 Maria Eduarda Alves Cruz - TA
- *
- * Descrição geral:
- *   Implementa um interpretador de instruções simulando os
- *   elementos de um processador: memória de programa, memória
- *   de dados, registradores (PC, IR, ACC), Unidade de Controle
- *   (UC) e Unidade Lógica e Aritmética (ULA).
- *
- *   Modo LOAD (#): armazena instruções sem executar.
- *   Modo RUN (R+U+N+#): executa uma instrução por vez com *.
- * ============================================================
- */
+   ============================================================
+    SISTEMA INTERPRETADOR DE INSTRUÇÕES COM SENSOR DE DISTÂNCIA
+    Arduino Mega 2560
+   ============================================================
+
+   Disciplina: Arquitetura de Computadores
+   Trabalho AP1 - 2026/1
+
+
+    202508549492 Juan Lucas Pereira - TA
+    202507010719 Marcus Vinicius da Cunha Martins Junior - TA
+    202507010697 Pedro Lucas Fonseca Vieira - TA
+    202508549621 Maria Eduarda Alves Cruz - TA
+
+   Descrição geral:
+     Implementa um interpretador de instruções simulando os
+     elementos de um processador: memória de programa, memória
+     de dados, registradores (PC, IR, ACC), Unidade de Controle
+     (UC) e Unidade Lógica e Aritmética (ULA).
+
+     Modo LOAD (#): armazena instruções sem executar.
+     Modo RUN (R+U+N+#): executa uma instrução por vez com *.
+   ============================================================
+*/
 
 #include <Keypad.h>
 
@@ -66,10 +66,10 @@ const byte ROWS = 4;
 const byte COLS = 4;
 
 char keys[ROWS][COLS] = {
-  {'1','2','3','A'},
-  {'4','5','6','B'},
-  {'7','8','9','C'},
-  {'*','0','#','D'}
+  {'1', '2', '3', 'A'},
+  {'4', '5', '6', 'B'},
+  {'7', '8', '9', 'C'},
+  {'*', '0', '#', 'D'}
 };
 
 byte rowPins[ROWS] = {PIN_ROW1, PIN_ROW2, PIN_ROW3, PIN_ROW4};
@@ -126,9 +126,9 @@ bool DEBUG_SERIAL = false;
 
 // Mnemônicos para exibição no Serial Monitor
 const char* MNEMONICOS[] = {
-  "NOP","READ","LOADK","ADDK","SUBK","CMPK",
-  "LEDON","LEDOFF","BUZON","BUZOFF","DISP",
-  "ALERT","BINC","STORE","LOADM","HALT"
+  "NOP", "READ", "LOADK", "ADDK", "SUBK", "CMPK",
+  "LEDON", "LEDOFF", "BUZON", "BUZOFF", "DISP",
+  "ALERT", "BINC", "STORE", "LOADM", "HALT"
 };
 
 // ============================================================
@@ -182,6 +182,8 @@ int ultimoEstadoALERT = -1;
 //  SETUP
 // ============================================================
 void setup() {
+  //Evita o Spam de teclas
+  teclado.setDebounceTime(400);
   Serial.begin(9600);
 
   // Configura pinos do display como saída
@@ -272,12 +274,12 @@ void processarTecla(char tecla) {
 
   // Letras R, U, N formam o comando RUN fora do modo LOAD
   if (!modoLOAD && (tecla == 'A' || tecla == 'B' || tecla == 'C')) {
-      if (tecla == 'A') bufferEntrada += 'R';
-      if (tecla == 'B') bufferEntrada += 'U';
-      if (tecla == 'C') bufferEntrada += 'N';
-      Serial.print(bufferEntrada == "R" ? "\nDigitando: R" :
-                  bufferEntrada == "RU" ? "U" : "N");
-      return;
+    if (tecla == 'A') bufferEntrada += 'R';
+    if (tecla == 'B') bufferEntrada += 'U';
+    if (tecla == 'C') bufferEntrada += 'N';
+    Serial.print(bufferEntrada == "R" ? "\nDigitando: R" :
+                 bufferEntrada == "RU" ? "U" : "N");
+    return;
   }
   // Modo LOAD: acumula dígitos e comandos de edição
   if (modoLOAD) {
@@ -287,8 +289,8 @@ void processarTecla(char tecla) {
     } else if (tecla == 'B') {
       // 'B' = espaço (separa opcode do operando)
       if (bufferEntrada.length() > 0) {
-        bufferEntrada += ' ';
-        Serial.print(' ');
+        bufferEntrada += 'B';
+        Serial.print('B');
       }
     } else if (tecla == 'C') {
       // 'C' = confirmar instrução (ENTER)
@@ -339,7 +341,10 @@ void sairModoLOAD() {
     Serial.print("] ");
     if (op <= 15) {
       Serial.print(MNEMONICOS[op]);
-      if (temOperando(op)) { Serial.print(" "); Serial.print(arg); }
+      if (temOperando(op)) {
+        Serial.print(" ");
+        Serial.print(arg);
+      }
     }
     Serial.println();
   }
@@ -367,7 +372,10 @@ void armazenarInstrucao(String instrucao) {
   Serial.print(ponteiroCarga);
   Serial.print("] -> ");
   Serial.print(MNEMONICOS[op]);
-  if (temOperando(op)) { Serial.print(" "); Serial.print(obterOperando(instrucao)); }
+  if (temOperando(op)) {
+    Serial.print(" ");
+    Serial.print(obterOperando(instrucao));
+  }
   Serial.println();
   ponteiroCarga++;
   totalInstrucoes = ponteiroCarga;
@@ -522,7 +530,7 @@ void executarProximaInstrucao() {
       desligarLED(3);
       noTone(PIN_BUZZER);
       acenderDisplay(SEG7[12]);
-      
+
       Serial.println("[HALT] Execucao encerrada.");
       break;
 
@@ -541,7 +549,7 @@ void executarProximaInstrucao() {
 // ============================================================
 byte obterOpcode(String instrucao) {
   instrucao.trim();
-  int espaco = instrucao.indexOf(' ');
+  int espaco = instrucao.indexOf('B');
   String parte = (espaco >= 0) ? instrucao.substring(0, espaco) : instrucao;
   int op = parte.toInt();
   if (op < 0 || op > 15) return 255;
@@ -553,7 +561,7 @@ byte obterOpcode(String instrucao) {
 // ============================================================
 int obterOperando(String instrucao) {
   instrucao.trim();
-  int espaco = instrucao.indexOf(' ');
+  int espaco = instrucao.indexOf('B');
   if (espaco < 0) return 0;
   return instrucao.substring(espaco + 1).toInt();
 }
@@ -575,7 +583,10 @@ void exibirEstado() {
   Serial.print(" | IR: ");
   if (IR <= 15) Serial.print(MNEMONICOS[IR]);
   else          Serial.print("???");
-  if (temOperando(IR)) { Serial.print(" "); Serial.print(obterOperando(programa[PC])); }
+  if (temOperando(IR)) {
+    Serial.print(" ");
+    Serial.print(obterOperando(programa[PC]));
+  }
   Serial.print(" | ACC: "); Serial.print(ACC);
   Serial.print(" | FLAG_Z: "); Serial.println(FLAG_Z ? "1" : "0");
 }
